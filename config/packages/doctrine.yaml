@@ -17,6 +17,7 @@ doctrine:
 
         url: '%env(resolve:DATABASE_URL)%'
     orm:
+#    set to true if we are running inside dev env, proxy classes are used when entities have relations
         auto_generate_proxy_classes: '%kernel.debug%'
         naming_strategy: doctrine.orm.naming_strategy.underscore
         auto_mapping: true
