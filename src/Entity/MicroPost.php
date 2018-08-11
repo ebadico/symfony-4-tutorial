@@ -41,7 +41,7 @@ class MicroPost
      */
     public function getText(): string
     {
-        return $this->text;
+        return $this->text ?? '';
     }
 
     /**
@@ -53,14 +53,17 @@ class MicroPost
     }
 
     /**
-     * @return string
+     * @return \DateTime
      */
-    public function getTime(): string
+    public function getTime(): \DateTime
     {
         return $this->time;
     }
 
-    public function setTime($time): void
+    /**
+     * @param \DateTime $time
+     */
+    public function setTime(\DateTime $time): void
     {
         $this->time = $time;
     }
