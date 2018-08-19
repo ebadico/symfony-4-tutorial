@@ -11,8 +11,12 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 
 /**
  * @Route("/micro-post")
@@ -45,6 +49,10 @@ class MicroPostController
      * @var FlashBagInterface
      */
     private $flashBag;
+    /**
+     * @var AuthorizationCheckerInterface
+     */
+    private $authorizationChecker;
 
     /**
      * MicroPostController constructor.
@@ -54,6 +62,7 @@ class MicroPostController
      * @param EntityManagerInterface $entityManager
      * @param RouterInterface $router
      * @param FlashBagInterface $flashBag
+     * @param AuthorizationCheckerInterface $authorizationChecker
      */
     public function __construct(
         \Twig_Environment $twig,
@@ -61,7 +70,8 @@ class MicroPostController
         MicroPostRepository $microPostRepository,
         EntityManagerInterface $entityManager,
         RouterInterface $router,
-        FlashBagInterface $flashBag
+        FlashBagInterface $flashBag,
+        AuthorizationCheckerInterface $authorizationChecker
     ) {
         $this->twig = $twig;
         $this->microPostRepository = $microPostRepository;
@@ -69,6 +79,7 @@ class MicroPostController
         $this->entityManager = $entityManager;
         $this->router = $router;
         $this->flashBag = $flashBag;
+        $this->authorizationChecker = $authorizationChecker;
     }
 
     /**
@@ -88,6 +99,7 @@ class MicroPostController
 
     /**
      * @Route("/edit/{id}", name="micro_post_edit")
+     * @Security("is_granted('edit', microPost)", message="Access Denied")
      * @param MicroPost $microPost
      * @param Request $request
      * @return Response
@@ -97,6 +109,9 @@ class MicroPostController
      */
     public function edit(MicroPost $microPost, Request $request): Response
     {
+        if (!$this->authorizationChecker->isGranted('edit', $microPost)) {
+            throw new UnauthorizedHttpException($microPost);
+        }
         $form = $this->formFactory->create(MicroPostType::class, $microPost);
         $form->handleRequest($request);
 
@@ -115,11 +130,15 @@ class MicroPostController
 
     /**
      * @Route("/delete/{id}", name="micro_post_delete")
+     * @Security("is_granted('delete', microPost)", message="Access Denied")
      * @param MicroPost $microPost
      * @return Response
      */
     public function delete(MicroPost $microPost): Response
     {
+//        if (!$this->authorizationChecker->isGranted('edit', $microPost)) {
+//            throw new UnauthorizedHttpException($microPost);
+//        }
         $this->entityManager->remove($microPost);
         $this->entityManager->flush();
 
@@ -127,18 +146,24 @@ class MicroPostController
 
         return new RedirectResponse($this->router->generate('micro_post_index'));
     }
+
     /**
      * @Route("/add", name="micro_post_add")
      * @param Request $request
+     * @param TokenStorageInterface $tokenStorage
      * @return Response
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
+     * @Security("is_granted('ROLE_USER')")
      */
-    public function add(Request $request): Response
+    public function add(Request $request, TokenStorageInterface $tokenStorage): Response
     {
+        $user = $tokenStorage->getToken()->getUser();
+
         $microPost = new MicroPost();
         $microPost->setTime(new \DateTime());
+        $microPost->setUser($user);
 
         $form = $this->formFactory->create(MicroPostType::class, $microPost);
         $form->handleRequest($request);
@@ -167,12 +192,12 @@ class MicroPostController
     public function post(MicroPost $microPost): Response
     {
         return new Response(
-          $this->twig->render(
-              'micro-post/post.html.twig',
-              [
+            $this->twig->render(
+                'micro-post/post.html.twig',
+                [
                   'post' => $microPost
-              ]
-          )
+                ]
+            )
         );
     }
 }
