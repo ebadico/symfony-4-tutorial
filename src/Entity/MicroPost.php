@@ -4,9 +4,11 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\ORM\Mapping\HasLifecycleCallbacks;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MicroPostRepository")
+ * @ORM\HasLifecycleCallbacks()
  * Class MicroPost
  * @package App\Entity
  */
@@ -75,6 +77,14 @@ class MicroPost
     public function setTime(\DateTime $time): void
     {
         $this->time = $time;
+    }
+
+    /**
+     * @ORM\PrePersist()
+     */
+    public function setTimeOnPersist(): void
+    {
+        $this->time = new \DateTime();
     }
 
     /**
