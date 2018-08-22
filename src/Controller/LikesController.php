@@ -8,8 +8,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
 /**
- * @Route("/likes"
+ * @Route("/likes")
  * Class LikesController
  * @package App\Controller
  */
@@ -38,7 +39,7 @@ class LikesController extends Controller
     }
 
     /**
-     * @Route("/unlike/{id}", name="likes_unlike")
+     * @Route("/unlike/{id}", name="likes_unLike")
      * @param MicroPost $microPost
      * @return JsonResponse
      */
