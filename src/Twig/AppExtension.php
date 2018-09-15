@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\LikeNotification;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
@@ -54,5 +55,17 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
     public function priceFilter($number): string
     {
         return '$' . number_format($number, 2, '.', ',');
+    }
+
+    /**
+     * @return array|\Twig_Test[]
+     */
+    public function getTests()
+    {
+        return [
+            new \Twig_SimpleTest('like', function ($obj) {
+                return $obj instanceof LikeNotification;
+            })
+        ];
     }
 }
