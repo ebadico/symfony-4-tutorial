@@ -1,0 +1,9 @@
+<h3>Welcome to the app</h3>
+
+Hello {{ user.fullName }} You've register into the app!<br><br>
+
+Please confirm account by clicking on this <a href="{{ url('security_confirm', {'token': user.confirmationToken }) }}">link</a>
+
+
+
+To log in, go to <a href="{{ url("security_login") }}">login page</a>.
